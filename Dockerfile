@@ -1,1 +1,1 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.1
+FROM centos:7\nRUN yum install -y httpd
