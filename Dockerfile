@@ -1,6 +1,6 @@
 FROM microsoft/dotnet:2.1-sdk
-COPY . /app
-WORKDIR /app
+COPY . /ComicBookGallery
+WORKDIR /ComicBookGallery
 RUN ["dotnet", "restore"]
 RUN ["dotnet", "build"]
 EXPOSE 80/tcp
