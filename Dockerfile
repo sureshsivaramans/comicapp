@@ -1,19 +1,35 @@
-FROM ubuntu-nginx
+FROM phusion/passenger-ruby23
 
-MAINTAINER Ben Bithacker ben@bithacker.org
+# Set correct environment variables.
+ENV HOME /root
 
-COPY Gemfile /app/Gemfile
-COPY Gemfile.lock /app/Gemfile.lock
+# Use baseimage-docker's init process.
+CMD ["/sbin/my_init"]
 
-WORKDIR /app
+# additional packages
+RUN apt-get update
 
-RUN ["/bin/bash", "-l", "-c", "bundle install"]
+# Active nginx
+RUN rm -f /etc/service/nginx/down
 
-ADD config/container/start-server.sh /usr/bin/start-server
-RUN chmod +x /usr/bin/start-server
+# Install bundle of gems
+WORKDIR /tmp
+ADD Gemfile /tmp/
+ADD Gemfile.lock /tmp/
+RUN bundle install
 
-ADD . /app
+# Copy the nginx template for configuration and preserve environment variables
+RUN rm /etc/nginx/sites-enabled/default
 
-EXPOSE 9292
+# Add the nginx site and config
+ADD webapp.conf /etc/nginx/sites-enabled/webapp.conf
 
- CMD ["/usr/bin/start-server"]
+RUN mkdir /home/app/webapp
+COPY . /home/app/webapp
+RUN usermod -u 1000 app
+RUN chown -R app:app /home/app/webapp
+WORKDIR /home/app/webapp
+
+# Clean up APT when done.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+EXPOSE 80
