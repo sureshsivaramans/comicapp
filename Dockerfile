@@ -1,3 +1,3 @@
-FROM ubi8/ubi
-
-RUN yum -y update
+FROM busybox:latest
+MAINTAINER Romin Irani (email@domain.com)
+CMD ["date"]
