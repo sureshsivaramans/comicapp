@@ -1,3 +1,4 @@
-FROM busybox:latest
+FROM busybox
 MAINTAINER Romin Irani (email@domain.com)
-CMD ["date"]
+ENTRYPOINT [“/bin/cat”]
+CMD [“/etc/passwd”]
