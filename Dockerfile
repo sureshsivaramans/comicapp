@@ -1,35 +1,29 @@
-FROM phusion/passenger-ruby23
+# Set the base image to Ubuntu
+FROM ubuntu
 
-# Set correct environment variables.
-ENV HOME /root
+# Update the repository sources list and install gnupg2
+RUN apt-get update && apt-get install -y gnupg2
 
-# Use baseimage-docker's init process.
-CMD ["/sbin/my_init"]
+# Add the package verification key
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
 
-# additional packages
+# Add MongoDB to the repository sources list
+RUN echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' > tee /etc/apt/sources.list.d/mongodb.list
+
+# Update the repository sources list
 RUN apt-get update
 
-# Active nginx
-RUN rm -f /etc/service/nginx/down
+# Install MongoDB package (.deb)
+RUN apt-get install -y mongodb
 
-# Install bundle of gems
-WORKDIR /tmp
-ADD Gemfile /tmp/
-ADD Gemfile.lock /tmp/
-RUN bundle install
+# Create the default data directory
+RUN mkdir -p /data/db
 
-# Copy the nginx template for configuration and preserve environment variables
-RUN rm /etc/nginx/sites-enabled/default
+# Expose the default port
+EXPOSE 27017
 
-# Add the nginx site and config
-ADD webapp.conf /etc/nginx/sites-enabled/webapp.conf
+# Default port to execute the entrypoint (MongoDB)
+CMD ["--port 27017"]
 
-RUN mkdir /home/app/webapp
-COPY . /home/app/webapp
-RUN usermod -u 1000 app
-RUN chown -R app:app /home/app/webapp
-WORKDIR /home/app/webapp
-
-# Clean up APT when done.
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-EXPOSE 80
+# Set default container command
+ENTRYPOINT usr/bin/mongodb
